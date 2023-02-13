@@ -1,0 +1,26 @@
+{
+  "name": "space-finder-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-cdk": "^2.64.0",
+    "aws-cdk-lib": "^2.64.0",
+    "constructs": "^10.1.248",
+    "esbuild": "^0.17.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.110",
+    "@types/uuid": "^9.0.0",
+    "aws-sdk": "^2.1313.0",
+    "uuid": "^9.0.0"
+  }
+}

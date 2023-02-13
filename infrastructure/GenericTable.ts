@@ -1,62 +1,105 @@
-import { Stack } from 'aws-cdk-lib';
-import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb'
+import { Stack } from "aws-cdk-lib";
+import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway'
-import { join } from 'path'
-import { handler } from '../services/node-lambda/hello';
+import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import { join } from "path";
+import { handler } from "../services/node-lambda/hello";
 
 export interface TableProps {
-    tableName: string,
-    primaryKey: string
-    createLambdaPath?: string,
-    readLambdaPath?: string,
-    updateLambdaPath?: string,
+  tableName: string;
+  primaryKey: string;
+  createLambdaPath?: string;
+  readLambdaPath?: string;
+  updateLambdaPath?: string;
+  deleteLambdaPath?: string;
 }
 
-
 export class GenerateTable {
+  private stack: Stack;
+  private table: Table;
+  private props: TableProps;
 
-    private stack: Stack;
-    private table: Table | undefined;
-    private props: TableProps;
+  private createLambda: NodejsFunction | undefined;
+  private readLambda: NodejsFunction | undefined;
+  private updateLambda: NodejsFunction | undefined;
+  private deleteLambda: NodejsFunction | undefined;
 
-    private createLambda: NodejsFunction | undefined;
-    private readLambda: NodejsFunction | undefined;
-    private updateLambda: NodejsFunction | undefined;
-    private deleteLambda: NodejsFunction | undefined;
+  public createLambdaIntegration: LambdaIntegration;
+  public readLambdaIntegration: LambdaIntegration;
+  public updateLambdaIntegration: LambdaIntegration;
+  public deleteLambdaIntegration: LambdaIntegration;
 
-    public createLambdaIntegration : LambdaIntegration;
-    public readLambdaIntegration : LambdaIntegration;
-    public uodateLambdaIntegration : LambdaIntegration;
-    public deleteLambdaIntegration : LambdaIntegration;
+  public constructor(stack: Stack, props: TableProps) {
+    this.stack = stack;
+    this.props = props;
+    this.initalize();
+  }
 
+  private initalize() {
+    this.createTable();
+    this.createLambdas();
+    this.grantTableRights();
+  }
 
-    public constructor(stack: Stack, props: TableProps) {
-        this.stack = stack;
-        this.props = props;
-        this.initalize();
+  private createTable() {
+    this.table = new Table(this.stack, this.props.tableName, {
+      partitionKey: {
+        name: this.props.primaryKey,
+        type: AttributeType.STRING,
+      },
+      tableName: this.props.tableName,
+    });
+  }
+  private createLambdas() {
+    if (this.props.createLambdaPath) {
+      this.createLambda = this.createSingleLambda(this.props.createLambdaPath);
+      this.createLambdaIntegration = new LambdaIntegration(this.createLambda);
     }
-
-
-    private initalize(){
-        this.createTable();
+    if (this.props.readLambdaPath) {
+      this.readLambda = this.createSingleLambda(this.props.readLambdaPath);
+      this.readLambdaIntegration = new LambdaIntegration(this.readLambda);
     }
-    private createTable(){
-        this.table = new Table(this.stack, this.props.tableName {
-            partitionKey: {
-                name: this.props.primaryKey,
-                type: AttributeType.STRING
-            },
-            tableName: this.props.tableName
-        })
+    if (this.props.updateLambdaPath) {
+      this.updateLambda = this.createSingleLambda(this.props.updateLambdaPath);
+      this.updateLambdaIntegration = new LambdaIntegration(this.updateLambda);
     }
-
-    private createSingleLambda(lambdaName: string): NodejsFunction {
-        const lambdaId = `${this.props.tableName}-${lambdaName}`
-        return new NodejsFunction(this.stack, lambdaId, {
-            entry: (join(__dirname, '..', 'services', this.props.tableName, `${lambdaName}.ts`)),
-            handler: "handler"
-        })
+    if (this.props.deleteLambdaPath) {
+      this.deleteLambda = this.createSingleLambda(this.props.deleteLambdaPath);
+      this.deleteLambdaIntegration = new LambdaIntegration(this.deleteLambda);
     }
+  }
 
+  private grantTableRights(){
+    if(this.createLambda) {
+        this.table.grantWriteData(this.createLambda);
+    }
+    if(this.readLambda) {
+        this.table.grantReadData(this.readLambda);
+    }
+    if(this.updateLambda) {
+        this.table.grantWriteData(this.updateLambda);
+    }
+    if(this.deleteLambda) {
+        this.table.grantWriteData(this.deleteLambda);
+    }
+  }
+
+  private createSingleLambda(lambdaName: string): NodejsFunction {
+    const lambdaId = `${this.props.tableName}-${lambdaName}`;
+    return new NodejsFunction(this.stack, lambdaId, {
+      entry: join(
+        __dirname,
+        "..",
+        "services",
+        this.props.tableName,
+        `${lambdaName}.ts`
+      ),
+      handler: "handler",
+      functionName: lambdaId,
+      environment: {
+        TABLE_NAME: this.props.tableName,
+        PRIMARY_KEY: this.props.primaryKey,
+      },
+    });
+  }
 }

@@ -3,6 +3,20 @@
 GET {{endpoint}}/hello
 ###
 
+GET {{endpoint}}/spaces
+###
+
+GET {{endpoint}}/spaces?spaceId=cda7955b-11b5-4f6f-8bf9-a59135ed40c6
+###
+
+PUT {{endpoint}}/spaces?spaceId=cda7955b-11b5-4f6f-8bf9-a59135ed40c6
+Content-Type: application/json
+
+{
+    "location" : "Updated Location",
+}
+###
+
 POST {{endpoint}}/spaces?spaceId=cda7955b-11b5-4f6f-8bf9-a59135ed40c6
 Content-Type: application/json
 

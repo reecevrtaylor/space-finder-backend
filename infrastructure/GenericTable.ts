@@ -11,6 +11,7 @@ export interface TableProps {
   readLambdaPath?: string;
   updateLambdaPath?: string;
   deleteLambdaPath?: string;
+  secondaryIndexes?: string[];
 }
 
 export class GenerateTable {
@@ -37,6 +38,7 @@ export class GenerateTable {
   private initalize() {
     this.createTable();
     this.createLambdas();
+    this.addSecondaryIndexes();
     this.grantTableRights();
   }
 
@@ -49,6 +51,21 @@ export class GenerateTable {
       tableName: this.props.tableName,
     });
   }
+
+  private addSecondaryIndexes() {
+    if (this.props.secondaryIndexes) {
+      for (const secondaryIndex of this.props.secondaryIndexes) {
+        this.table.addGlobalSecondaryIndex({
+          indexName: secondaryIndex,
+          partitionKey: {
+            name: secondaryIndex,
+            type: AttributeType.STRING,
+          },
+        });
+      }
+    }
+  }
+
   private createLambdas() {
     if (this.props.createLambdaPath) {
       this.createLambda = this.createSingleLambda(this.props.createLambdaPath);
@@ -68,18 +85,18 @@ export class GenerateTable {
     }
   }
 
-  private grantTableRights(){
-    if(this.createLambda) {
-        this.table.grantWriteData(this.createLambda);
+  private grantTableRights() {
+    if (this.createLambda) {
+      this.table.grantWriteData(this.createLambda);
     }
-    if(this.readLambda) {
-        this.table.grantReadData(this.readLambda);
+    if (this.readLambda) {
+      this.table.grantReadData(this.readLambda);
     }
-    if(this.updateLambda) {
-        this.table.grantWriteData(this.updateLambda);
+    if (this.updateLambda) {
+      this.table.grantWriteData(this.updateLambda);
     }
-    if(this.deleteLambda) {
-        this.table.grantWriteData(this.deleteLambda);
+    if (this.deleteLambda) {
+      this.table.grantWriteData(this.deleteLambda);
     }
   }
 

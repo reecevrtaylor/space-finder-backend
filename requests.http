@@ -11,3 +11,6 @@ Content-Type: application/json
     "name" : "Best Location"
 }
 ###
+
+GET {{endpoint}}/spaces?location=London
+###

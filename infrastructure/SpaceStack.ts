@@ -16,11 +16,12 @@ export class SpaceStack extends Stack {
   private api = new RestApi(this, "SpaceApi");
   // private spacesTable = new GenerateTable("SpacesTable", "spaceId", this);
   private spacesTable = new GenerateTable(this, {
-    tableName: 'SpacesTable',
-    primaryKey: 'spaceId',
-    createLambdaPath: 'Create',
-    readLambdaPath: 'Read'
-  })
+    tableName: "SpacesTable",
+    primaryKey: "spaceId",
+    createLambdaPath: "Create",
+    readLambdaPath: "Read",
+    secondaryIndexes: ["location"],
+  });
 
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
@@ -41,6 +42,7 @@ export class SpaceStack extends Stack {
 
     // spaces api integrations
     const spaceResource = this.api.root.addResource("spaces");
-    spaceResource.addMethod('POST', this.spacesTable.createLambdaIntegration);
-    spaceResource.addMethod('GET', this.spacesTable.readLambdaIntegration);
-  }}
+    spaceResource.addMethod("POST", this.spacesTable.createLambdaIntegration);
+    spaceResource.addMethod("GET", this.spacesTable.readLambdaIntegration);
+  }
+}

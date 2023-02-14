@@ -3,7 +3,6 @@ import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 import { join } from "path";
-import { handler } from "../services/node-lambda/hello";
 
 export interface TableProps {
   tableName: string;
